@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 // Load environment variables
 dotenv.config();
@@ -9,6 +11,20 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/fullstack-app';
+
+// 1. Security HTTP Headers
+app.use(helmet());
+
+// 2. Rate Limiter (DDoS & Spamming Defense: Max 100 requests per 15 mins)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/api/', limiter);
 
 // Middleware
 app.use(cors());
